@@ -1,9 +1,12 @@
 import collections
+import logging
 import os
+import shutil
 import subprocess
 import tarfile
+import urllib.request
 
-from unassign.parse import parse_fasta, parse_greengenes_accessions
+from unassigner.parse import parse_fasta, parse_greengenes_accessions
 
 LTP_METADATA_COLS = [
     "accession",
@@ -27,7 +30,7 @@ GG_SEQS_URL = \
     "ftp://greengenes.microbio.me/greengenes_release/gg_13_5/gg_13_5.fasta.gz"
 GG_ACCESSIONS_URL = \
     "ftp://greengenes.microbio.me/greengenes_release/gg_13_5/gg_13_5_accessions.txt.gz"
-SPECIES_FASTA_FP = "species.fasta"
+SPECIES_FASTA_FP = "unassigner_species.fasta"
 REFSEQS_FASTA_FP = "refseqs.fasta"
 GG_DUPLICATE_FP = "gg_duplicate_ids.txt"
 
@@ -54,11 +57,10 @@ def url_fp(url):
 def gunzip_fp(fp):
     return fp[:-3]
 
-
 def get_url(url, fp):
-    if os.path.exists(fp):
-        os.remove(fp)
-    subprocess.check_call(["wget", "-O", fp, url])
+    logging.info("Downloading {0}".format(url))
+    with urllib.request.urlopen(url) as resp, open(fp, 'wb') as f:
+        shutil.copyfileobj(resp, f)
     return fp
 
 
